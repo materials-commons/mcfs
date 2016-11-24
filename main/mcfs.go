@@ -57,12 +57,29 @@ func fixName(name string) string {
 
 func (fs *MCFS) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.Status) {
 	//fmt.Println("name", name)
-	switch name {
-	case "":
+	ext := filepath.Ext(name)
+	switch {
+	case name == "":
 		return &fuse.Attr{Mode: fuse.S_IFDIR | 0755}, fuse.OK
+	case ext == "":
+		return &fuse.Attr{Mode: fuse.S_IFDIR | 0755}, fuse.OK
+	case isFile(ext):
+		fmt.Println("attr on file", name)
+		return &fuse.Attr{Mode: fuse.S_IFREG | 0644, Size: uint64(4096)}, fuse.OK
 	default:
 		//fmt.Println("GetAttr for", name)
 		return &fuse.Attr{Mode: fuse.S_IFDIR | 0755}, fuse.OK
+	}
+}
+
+func isFile(ext string) bool {
+	switch ext {
+	case "json":
+		return true
+	case "html":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -114,6 +131,8 @@ func (fs *MCFS) OpenDir(name string, context *fuse.Context) ([]fuse.DirEntry, fu
 			{Name: "samples", Mode: fuse.S_IFDIR | 0755},
 			{Name: "experiments", Mode: fuse.S_IFDIR | 0755},
 		}, fuse.OK
+	} else if name == "" {
+
 	}
 
 	fmt.Println("Returning fuse.ENOENT for", name)
@@ -137,6 +156,17 @@ func isPathType(what string) bool {
 
 func (fs *MCFS) Open(name string, flags uint32, context *fuse.Context) (nodefs.File, fuse.Status) {
 	fmt.Println("Open", name)
+	ID, _ := mcfs.PathEntry("WE43")
+	var (
+		urlstr  = fmt.Sprintf("%s/api/v2/projects/%s?apikey=%s", mcurl, ID, apikey)
+	)
+	fmt.Println("urlstr", urlstr)
+	resp, err := grequests.Get(urlstr, &opts)
+	if err != nil {
+		return nil, fuse.ENOENT
+	}
+	val := resp.String()
+	fmt.Println("Project Str", val)
 	return nil, fuse.ENOENT
 }
 

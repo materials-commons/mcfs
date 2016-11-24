@@ -1,7 +1,5 @@
 package mcfs
 
-import "fmt"
-
 type PMEnum int
 
 const (
@@ -21,7 +19,7 @@ type PathMapEntry struct {
 var pathMap map[string]PathMapEntry = make(map[string]PathMapEntry)
 
 func AddProject(path string, ID string) {
-	fmt.Printf("AddProject '%s'\n", path)
+	//fmt.Printf("AddProject '%s'\n", path)
 	pathMap[path] = PathMapEntry{Type: PMProject, ID: ID}
 }
 
@@ -42,9 +40,9 @@ func AddProperty(path string, ID string) {
 }
 
 func PathEntry(path string) (string, PMEnum) {
-	fmt.Printf("PathEntry '%s'\n", path)
+	//fmt.Printf("PathEntry '%s'\n", path)
 	entry, found := pathMap[path]
-	fmt.Println("  ", entry, found)
+	//fmt.Println("  ", entry, found)
 	if found {
 		return entry.ID, entry.Type
 	}
