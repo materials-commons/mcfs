@@ -8,8 +8,26 @@ const (
 	PMFile
 	PMProcess
 	PMProperty
+	PMDir
 	PMNotFound
 )
+
+var pmEnumToStr = map[PMEnum]string{
+	PMProject: "PMProject",
+	PMSample: "PMSample",
+	PMFile: "PMFile",
+	PMProcess: "PMProcess",
+	PMDir: "PMDir",
+	PMNotFound: "PMNotFound",
+}
+
+func (p PMEnum) String() string {
+	if val, found := pmEnumToStr[p]; found {
+		return val
+	}
+
+	return "UNKNOWN"
+}
 
 type PathMapEntry struct {
 	Type PMEnum
