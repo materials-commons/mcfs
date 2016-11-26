@@ -35,21 +35,9 @@ var (
 	mcurl  = os.Getenv("MCURL")
 )
 
-func initIt() {
-	fmt.Println("Init called")
-	var (
-		urlstr = fmt.Sprintf("%s/api/v2/projects?apikey=%s", mcurl, apikey)
-	)
-	fmt.Println("urlstr", urlstr)
-	resp, err := grequests.Get(urlstr, &opts)
-	if err != nil {
-		log.Fatal("Failed to call grequests")
-	}
-	resp.JSON(&projects)
-	for _, proj := range projects {
-		proj.Name = strings.Replace(proj.Name, "/", "_", -1)
-	}
-}
+const ModeDir = fuse.S_IFDIR | 0755
+const ModeFile = fuse.S_IFREG | 0644
+
 
 func fixName(name string) string {
 	return strings.Replace(name, "/", "_", -1)
@@ -61,17 +49,17 @@ func (fs *MCFS) GetAttr(name string, context *fuse.Context) (*fuse.Attr, fuse.St
 	switch {
 	case name == "":
 		fmt.Println("  return from name == ''")
-		return &fuse.Attr{Mode: fuse.S_IFDIR | 0755}, fuse.OK
+		return &fuse.Attr{Mode: ModeDir}, fuse.OK
 	case ext == "":
 		fmt.Println("  return from ext == ''")
-		return &fuse.Attr{Mode: fuse.S_IFDIR | 0755}, fuse.OK
+		return &fuse.Attr{Mode: ModeDir}, fuse.OK
 	case isFile(ext):
 		fmt.Println("  return from isFile", name)
-		return &fuse.Attr{Mode: fuse.S_IFREG | 0644, Size: uint64(4096)}, fuse.OK
+		return &fuse.Attr{Mode: ModeFile, Size: uint64(4096)}, fuse.OK
 	default:
 		fmt.Println("  return from default")
 		//fmt.Println("GetAttr for", name)
-		return &fuse.Attr{Mode: fuse.S_IFDIR | 0755}, fuse.OK
+		return &fuse.Attr{Mode: ModeDir}, fuse.OK
 	}
 }
 
@@ -109,30 +97,30 @@ func (fs *MCFS) OpenDir(name string, context *fuse.Context) ([]fuse.DirEntry, fu
 		}
 		resp.JSON(&projects)
 		for _, proj := range projects {
-			entries = append(entries, fuse.DirEntry{Name: fixName(proj.Name), Mode: fuse.S_IFDIR | 0755})
+			entries = append(entries, fuse.DirEntry{Name: fixName(proj.Name), Mode: ModeDir})
 			mcfs.AddProject(filepath.Join(name, fixName(proj.Name)), proj.ID)
 		}
 		return entries, fuse.OK
 	} else if name == "" {
 		var entries []fuse.DirEntry
 		for _, proj := range projects {
-			entries = append(entries, fuse.DirEntry{Name: fixName(proj.Name), Mode: fuse.S_IFDIR | 0755})
+			entries = append(entries, fuse.DirEntry{Name: fixName(proj.Name), Mode: ModeDir})
 		}
 		return entries, fuse.OK
 	} else if _, ptype := mcfs.PathEntry(name); ptype == mcfs.PMProject {
 		fmt.Println("Returning top level project entries")
 		return []fuse.DirEntry{
-			{Name: "json", Mode: fuse.S_IFDIR | 0755},
-			{Name: "html", Mode: fuse.S_IFDIR | 0755},
-			{Name: "text", Mode: fuse.S_IFDIR | 0755},
-			{Name: "files", Mode: fuse.S_IFDIR | 0755},
+			{Name: "json", Mode: ModeDir},
+			{Name: "html", Mode: ModeDir},
+			{Name: "text", Mode: ModeDir},
+			{Name: "files", Mode: ModeDir},
 		}, fuse.OK
 	} else if dir, last := filepath.Split(name); isPathType(last) {
 		mcfs.PathEntry(filepath.Clean(dir))
 		return []fuse.DirEntry{
-			{Name: fmt.Sprintf("%s.json", filepath.Base(dir)), Mode: fuse.S_IFREG | 0644},
-			{Name: "samples", Mode: fuse.S_IFDIR | 0755},
-			{Name: "experiments", Mode: fuse.S_IFDIR | 0755},
+			{Name: fmt.Sprintf("%s.json", filepath.Base(dir)), Mode: ModeFile},
+			{Name: "samples", Mode: ModeDir},
+			{Name: "experiments", Mode: ModeDir},
 		}, fuse.OK
 	} else if name != "" {
 		//fmt.Println
@@ -188,13 +176,13 @@ func main() {
 	fs := pathfs.NewPathNodeFs(&MCFS{FileSystem: pathfs.NewLockingFileSystem(pathfs.NewDefaultFileSystem())}, &pathfs.PathNodeFsOptions{Debug: false})
 	server, _, err := nodefs.MountRoot(flag.Arg(0), fs.Root(), &nodefs.Options{Debug: false})
 	if err != nil {
-		log.Fatal("Mount failed: %v\n", err)
+		log.Fatal("Mount failed: %s\n", err)
 	}
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	go func() {
-		for _ = range signalChan {
+		for range signalChan {
 			err := server.Unmount()
 			if err != nil {
 				fmt.Println("Error unmounting", err)
