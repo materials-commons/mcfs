@@ -1,24 +1,84 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
-*.o
-*.a
+# pycharm
+.idea/
+
+#pydoc
+*.html
+**/*.html
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
 *.so
 
-# Folders
-_obj
-_test
+# R support files
+.Rapp.history
+.RData
+.Rhistory
 
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-*.cgo1.go
-*.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
-_testmain.go
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
 
-*.exe
-*.test
-*.prof
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Mac OsX
+.DS_Store
+**/.DS_Store
+*.swp
+
+.pythonenv
+# protect empty test dirs from git clean -fd
+test/test_data/test_upload_data/test_upload_dir/sub_directory_c/empty_dir/
+test/test_data/cli_test_project/
+
+# directory for testing files that should not be in github
+ignore/
+venv
