@@ -30,19 +30,20 @@ def _make_repr(class_name, *args, **kwargs):
     return "{}({})".format(class_name, ", ".join(arguments))
 
 
-class MCProxyFile(io.IOBase):
+class MCFileProxy(io.IOBase):
     """Proxy for a Materials Commons File - based on S3File from s3fs"""
 
-    def __init__(self, f, filename, mode, on_close=None):
+    def __init__(self, f, filename, mode, mc_file, on_close=None):
         self._f = f
         self._filename = filename
         self._mode = mode
+        self.mc_file = mc_file
         self._on_close = on_close
 
     @classmethod
-    def factory(cls, filename, mode, on_close):
+    def factory(cls, filename, mode, mc_file, on_close):
         """Create a temporary file as the proxy for the Materials Commons file"""
-        return cls(tempfile.TemporaryFile(), filename, mode, on_close=on_close)
+        return cls(tempfile.TemporaryFile(), filename, mode, mc_file, on_close=on_close)
 
     def __repr__(self):
         return _make_repr(self.__class__.__name__, self._filename, str(self._mode))
